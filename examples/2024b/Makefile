@@ -2,11 +2,8 @@
 # and track changes to depencies *only*
 # yaml file controls filenames, and all other parameters
 # it is up to the user to keep the yaml file and Makefile
-# in synch!
-schedule: schedule.sh
-observations: observations.csv
-targets: targets.csv
-noons: solar_noons.csv
+# in sync!
+
 
 schedule.sh : observations.csv
 	generate_observation_script example.yaml

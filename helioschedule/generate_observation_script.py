@@ -13,7 +13,6 @@ SUN_OBS_STR = "schedule_observation.py --starttime={pre_time_comma} --stoptime=+
 SUN_OBS_STR_POST = "schedule_observation.py --starttime={post_time_comma} --stoptime=++16s --freq='{coarse_channels}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
 OBSERVATION_STR = "schedule_observation.py --starttime={time_comma} --stoptime=++{duration}s --freq='{coarse_channels}' --obsname={obs_name_prefix}{field} --shifttime={shifttime} --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --azimuth={az} --elevation={el}"
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Input yaml file")
@@ -47,7 +46,6 @@ def main():
         # round to nearest 8s (MWA observations must start and stop on these boundaries)
         # dt = (86400 * times.jd2 % 8) * u.second
         # times = np.where(dt < 4 * u.s, times - dt, times + (8 * u.s - dt))
-        # print(times)
         if "starttime_%s" % t in obs_ha.colnames:
             # print('using starttime column, min mean max difference',
             # f"{np.nanmin(np.abs(times_starttime.gps-times)):.2f}",
@@ -59,9 +57,8 @@ def main():
             raise RuntimeError("missing start times, does not work with this version!")
 
         for j in range(len(noons)):
-            if np.isnan(obs_ha["ha_%s" % t][S][j]):
+            if np.isnan(obs_ha["ha_idx_%s" % t][S][j]):
                 continue
-            print(t)
             out_dict = []
             out_dict = conf["obs"]
             out_dict["coarse_channels"] = conf["fields"][t]["obs_chan"]
@@ -77,9 +74,8 @@ def main():
             out_dict["az"], out_dict["el"] = azel[out_dict["sweetspot"]]
             out_dict["obs_name_prefix"] = conf["obsName"]
             out_dict["field"] = t
-            out_dict["ha"] = obs_ha["ha_%s" % t][S].data[j]
             out_dict["sun_attenuation"] = obs_ha["sun_attenuation_%s" % t][S].data[j]
-            out_dict["target_sensitivity"] = obs_ha["ha_%s" % t][S].data[j]
+            out_dict["target_sensitivity"] = obs_ha["target_sensitivity_%s" % t][S].data[j]
             out_dict["unflagged_before"] = obs_ha["unflagged_before_%s" % t][S].data[j]
             out_dict["unflagged_after"] = obs_ha["unflagged_after_%s" % t][S].data[j]
             observations.append(out_dict.copy())
@@ -125,7 +121,6 @@ def main():
             "time",
             "field",
             "sweetspot",
-            "ha",
             "az",
             "el",
             "sun_attenuation",
