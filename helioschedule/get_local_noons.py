@@ -49,13 +49,13 @@ def main():
     times, y = almanac.find_discrete(t_start, t_end, f)
 
     with open(conf["files"]["noons"], "w") as f:
-        print("local_noon_str,local_noon_lst", file=f)
+        print("local_noon_str,local_noon_lst,local_noon_gps", file=f)
         for t, time in enumerate(times):
             if y[t]:
                 local_noon_lst = Longitude(
                     time.gmst * u.hourangle + conf["lon"] * u.deg, wrap_angle=180 * u.deg
                 ).deg
-                print(time.utc_iso()[:-1], "%.3f" % local_noon_lst, sep=",", file=f)
+                print(time.utc_iso()[:-1], "%.3f" % local_noon_lst, time.to_astropy().gps, sep=",", file=f)
 
 
 if __name__ == "__main__":

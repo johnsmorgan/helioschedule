@@ -87,7 +87,7 @@ def main():
             out_dict[key] = target[key]
 
         # Calculate and stop time based on solar noon 
-        solar_noon_gps = Time(target["local_noon_str"]).gps.astype(int)
+        solar_noon_gps = int(round(float(target["local_noon_gps"])))
         mintime, maxtime = get_min_max(solar_noon_gps, conf['solarOffset'])
         all_obstimes = get_all_steps(solar_noon_gps, mintime, maxtime, conf['solarOffset'])
         
