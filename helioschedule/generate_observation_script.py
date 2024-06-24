@@ -116,7 +116,7 @@ def main():
             % (target_time, sun_target_time, schedule_time),
             file=outfile,
         )
-    with open(conf["files"]["schedule_csv"], "w") as outfile:
+    with open(conf["files"]["schedule_csv"], "w") as csvfile:
         fieldnames = (
             "time",
             "field",

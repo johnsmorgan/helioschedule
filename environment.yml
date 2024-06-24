@@ -8,6 +8,7 @@ dependencies:
   - h5py
   - astropy
   - skyfield
+  - requests
   - black
   - flake8
   - isort

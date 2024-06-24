@@ -104,6 +104,7 @@ files:
         pointings: ../../data/azel.json
         beams: beams2.hdf5
         noons: solar_noons.csv
+        flags: flags.json 
         targets: targets.csv
         observations: observations.csv
         schedule: schedule.sh

@@ -19,6 +19,7 @@ requires-python = "~=3.12"
 
 [project.scripts]
 get_local_noons = "helioschedule.get_local_noons:main"
+get_flags = "helioschedule.get_flags:main"
 convert_coordinates = "helioschedule.convert_coordinates:main"
 schedule = "helioschedule.schedule:main"
 generate_observation_script  = "helioschedule.generate_observation_script:main"
