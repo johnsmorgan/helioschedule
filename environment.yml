@@ -1,0 +1,17 @@
+name: helioschedule
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - h5py
+  - astropy
+  - skyfield
+  - black
+  - flake8
+  - isort
+  - pip
+  - pip:
+    - python-dotenv
+    - -e .
