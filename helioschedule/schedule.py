@@ -1,6 +1,7 @@
 """
 Optimized scheduling of observations
 """
+
 import argparse
 import csv
 import numpy as np
@@ -11,6 +12,7 @@ from yaml import safe_load
 INTERVAL_DEGREES = 3.3424596978682920e-02  # interval in degrees for fine HA search
 N = 75  # observation length in units of INTERVAL_DEGREES
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Input yaml file")
@@ -19,12 +21,13 @@ def main():
 
     targets = csv.DictReader(line for line in open(conf["files"]["targets"]))
     df = File(conf["files"]["beams"], "r")
-    fine_scale = np.arange(np.min(df["beams"].dims[3][0]), np.max(df["beams"].dims[3][0]), INTERVAL_DEGREES)
+    fine_scale = np.arange(
+        np.min(df["beams"].dims[3][0]), np.max(df["beams"].dims[3][0]), INTERVAL_DEGREES
+    )
 
     obs_ha = []
 
     arg_closest = lambda x, y: np.argmin(np.abs((x - y)))
-
 
     def neighbours(arr, val):
         """
@@ -40,7 +43,6 @@ def main():
             closest2 = closest + 1
         return closest1, closest2
 
-
     def lin_interp(y1, y2, dx):
         """
         return linear interpolation of y1 and y2
@@ -50,7 +52,6 @@ def main():
         dx controls the relative weighting of y1 and y2 in the interpolation
         """
         return y1 * (1 - dx) + y2 * dx
-
 
     for target in targets:
         beam_chan = None
@@ -72,7 +73,9 @@ def main():
             else:
                 try:
                     beam_chan = conf["fields"][c]["beam_chan"]
-                    f = np.argwhere(df["coarse_chans"][...] == conf["fields"][c]["beam_chan"].encode("ascii"))[0][0]
+                    f = np.argwhere(
+                        df["coarse_chans"][...] == conf["fields"][c]["beam_chan"].encode("ascii")
+                    )[0][0]
                 except IndexError:
                     print("can't find %s in beam file" % conf["fields"][c]["beam_chan"])
                 sun_dec = float(target["dec_sun"])
@@ -109,20 +112,27 @@ def main():
                 target_dec - df["beams"].dims[2][0][target_dec_idx[0]],
             )
 
-            target_beam = np.roll(target_beam, target_ha_idx, axis=1) / np.expand_dims(df["broadness"][f, ...], 1)
+            target_beam = np.roll(target_beam, target_ha_idx, axis=1) / np.expand_dims(
+                df["broadness"][f, ...], 1
+            )
             sun_filter = sun_beam < 10 ** conf["solarAttenuationCutoff"]
 
             # applying sun_filter to target_beam will return a ravelled array.
             # we need to be able to identify the original location of our peak sensitivity within target_beam
             if ha_grid is None:
-                ha_grid, beam_grid = np.meshgrid(np.arange(target_beam.shape[1]), np.arange(target_beam.shape[0]))
+                ha_grid, beam_grid = np.meshgrid(
+                    np.arange(target_beam.shape[1]), np.arange(target_beam.shape[0])
+                )
                 # also need a filter to stop subsequent observations from clashing
                 target_filter = np.ones(target_beam.shape, bool)
 
             try:
                 flat_idx = np.nanargmax(target_beam[sun_filter & target_filter])
             except ValueError:
-                print("Warning, no observation meets criteria for %s target %s" % (target["local_noon_str"], c))
+                print(
+                    "Warning, no observation meets criteria for %s target %s"
+                    % (target["local_noon_str"], c)
+                )
                 out_dict["ha_%s" % c] = np.nan
                 out_dict["beam_%s" % c] = -1
                 out_dict["sun_attenuation_%s" % c] = np.nan
@@ -180,5 +190,7 @@ def main():
         writer.writeheader()
         for out_dict in obs_ha:
             writer.writerow(out_dict)
-if __name__=='__main__':
+
+
+if __name__ == "__main__":
     main()

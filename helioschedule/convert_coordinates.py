@@ -1,6 +1,7 @@
 """
 Calculate coordinates of each observation
 """
+
 import argparse
 from datetime import datetime
 from numpy import radians, sin, cos, arcsin, arctan2, ones
@@ -12,6 +13,7 @@ from astropy.coordinates import Angle, SkyCoord, Longitude, get_sun, GeocentricT
 from astropy.table import Table, Column
 from astropy.time import Time
 
+
 def destination(theta, d, phi1=0.0, lambda1=0.0):
     """
     from http://www.movable-type.co.uk/scripts/latlong.html
@@ -21,9 +23,7 @@ def destination(theta, d, phi1=0.0, lambda1=0.0):
     Returns new lat and long
     """
     phi2 = arcsin(sin(phi1) * cos(d) + cos(phi1) * sin(d) * cos(theta))
-    lambda2 = lambda1 + arctan2(
-        sin(theta) * sin(d) * cos(phi1), cos(d) - sin(phi1) * sin(phi2)
-    )
+    lambda2 = lambda1 + arctan2(sin(theta) * sin(d) * cos(phi1), cos(d) - sin(phi1) * sin(phi2))
     return phi2, lambda2
 
 
@@ -83,13 +83,20 @@ def main():
         elif conf["fields"][target]["system"] == "Ecliptic":
             ra_coord, dec_coord = conf["fields"][target]["coordinates"]
             ra = Column(data=ra_coord * ones(times.shape) * u.deg, name="ra_%s" % (target))
-            ha = Column(data=Longitude(ra_coord * ones(times.shape) * u.deg - sun_eq.ra, wrap_angle=180 * u.deg).deg, name="ha_%s" % (target))
+            ha = Column(
+                data=Longitude(
+                    ra_coord * ones(times.shape) * u.deg - sun_eq.ra, wrap_angle=180 * u.deg
+                ).deg,
+                name="ha_%s" % (target),
+            )
             dec = Column(data=dec_coord * ones(times.shape) * u.deg, name="dec_%s" % (target))
             out_table.add_columns([ra, dec, ha])
         if "skip" in conf["fields"][target]:
             assert "offset" in conf["fields"][target], "target %s has 'skip' but no 'offset'"
             out_table["ha_%s" % target].mask = True
-            out_table["ha_%s" % target].mask[conf["fields"][target]["offset"] :: conf["fields"][target]["skip"]] = False
+            out_table["ha_%s" % target].mask[
+                conf["fields"][target]["offset"] :: conf["fields"][target]["skip"]
+            ] = False
 
     if "flags" in conf.keys():
         noon_deg = parse_time([t.isot[11:] for t in times])
@@ -105,5 +112,6 @@ def main():
 
     out_table.write(conf["files"]["targets"], format="csv", overwrite=True)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
