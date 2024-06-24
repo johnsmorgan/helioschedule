@@ -65,7 +65,6 @@ def main():
         if conf["fields"][target]["system"] == "Heliocentric":
             l1, phi = conf["fields"][target]["coordinates"]
             target_offset = destination(radians(phi), radians(l1))
-            print(target_offset)
             target_ecliptic = GeocentricTrueEcliptic(
                 sun_ecliptic.lon + u.rad * target_offset[1],
                 sun_ecliptic.lat + u.rad * target_offset[0],
