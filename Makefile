@@ -28,14 +28,14 @@ clean:
 ## Lint using flake8 and black (use `make format` to do formatting)
 .PHONY: lint
 lint:
-	flake8 helioschedule
+	flake8 helioschedule data
 	isort --check --diff --profile black helioschedule
 	black --check --config pyproject.toml helioschedule
 
 ## Format source code with black
 .PHONY: format
 format:
-	black --config pyproject.toml helioschedule
+	black --config pyproject.toml helioschedule data
 
 
 

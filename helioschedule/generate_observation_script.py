@@ -1,7 +1,8 @@
-import csv, json, argparse
+import csv
+import json
+import argparse
 import numpy as np
 from yaml import safe_load
-from astropy.coordinates import Angle, AltAz, EarthLocation
 from astropy.io import ascii
 from astropy import units as u
 from astropy.time import Time

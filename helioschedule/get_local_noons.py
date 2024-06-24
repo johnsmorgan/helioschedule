@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     conf = safe_load(open(args.infile))
 
-    earth, sun = eph["EARTH BARYCENTER"], eph["sun"]
+    sun = eph["sun"]
 
     location = Topos(
         latitude_degrees=conf["lat"], longitude_degrees=conf["lon"], elevation_m=conf["alt"]
