@@ -98,7 +98,7 @@ priority: # highest priority first
   - SSW
 
 solarAttenuationCutoff: -3.0 # log10 of solar attenuation required relative to beam centre
-solarOffset: 24576 # 3072*8; just over 6.8 hours either side of local solar noon will be considered for scheduling
+solarOffset: 24576 #s 3072*8; just over 6.8 hours either side of local solar noon will be considered for scheduling
 
 files:
         pointings: ../../data/azel.json
