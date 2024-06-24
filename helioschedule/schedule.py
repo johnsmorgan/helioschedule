@@ -13,10 +13,6 @@ from astropy.time import Time
 
 round_to_8 = lambda x: int(x - x%8)
 
-SOLAR_OFFSET = 3072*8 # just over 6.8 hours
-SOLAR_OFFSET/3600.
-print
-
 def get_min_max(solar_noon_gps, offset):
     mintime = round_to_8(solar_noon_gps-offset)
     maxtime = mintime + round_to_8(offset*2)
