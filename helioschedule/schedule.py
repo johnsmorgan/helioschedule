@@ -12,6 +12,34 @@ from yaml import safe_load
 INTERVAL_DEGREES = 3.3424596978682920e-02  # interval in degrees for fine HA search
 N = 75  # observation length in units of INTERVAL_DEGREES
 
+arg_closest = lambda x, y: np.argmin(np.abs((x - y)))
+
+
+def neighbours(arr, val):
+    """
+    return two closest values in arr to val
+    assumes arr is sorted (lowest value first)
+    """
+    closest = arg_closest(arr, val)
+    if arr[closest] > val:
+        closest1 = closest - 1
+        closest2 = closest
+    else:
+        closest1 = closest
+        closest2 = closest + 1
+    return closest1, closest2
+
+
+def lin_interp(y1, y2, dx):
+    """
+    return linear interpolation of y1 and y2
+
+    y1 and y2 are y(x1) and y(x2)
+
+    dx controls the relative weighting of y1 and y2 in the interpolation
+    """
+    return y1 * (1 - dx) + y2 * dx
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -26,32 +54,6 @@ def main():
     )
 
     obs_ha = []
-
-    arg_closest = lambda x, y: np.argmin(np.abs((x - y)))
-
-    def neighbours(arr, val):
-        """
-        return two closest values in arr to val
-        assumes arr is sorted (lowest value first)
-        """
-        closest = arg_closest(arr, val)
-        if arr[closest] > val:
-            closest1 = closest - 1
-            closest2 = closest
-        else:
-            closest1 = closest
-            closest2 = closest + 1
-        return closest1, closest2
-
-    def lin_interp(y1, y2, dx):
-        """
-        return linear interpolation of y1 and y2
-
-        y1 and y2 are y(x1) and y(x2)
-
-        dx controls the relative weighting of y1 and y2 in the interpolation
-        """
-        return y1 * (1 - dx) + y2 * dx
 
     for target in targets:
         beam_chan = None
