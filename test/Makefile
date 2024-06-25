@@ -12,15 +12,11 @@
 CONF_FILE=test.yaml
 
 test: schedule.sh observations.csv
-	$(info Diffing solar_noons.csv)
+	$(info Diffing generated files against reference)
 	diff solar_noons.csv solar_noons_reference.csv
-	$(info Diffing flags.json)
 	diff flags.json flags_reference.json
-	$(info Diffing targets.csv)
 	diff targets.csv targets_reference.csv
-	$(info Diffing observations.csv)
 	diff observations.csv observations_reference.csv
-	$(info Diffing schedule.sh)
 	diff schedule.sh schedule_reference.sh
 
 clean:
