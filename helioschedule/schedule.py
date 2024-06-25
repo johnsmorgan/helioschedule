@@ -53,9 +53,9 @@ def num_unflagged(array, idx, forward=True):
         arr = array[idx:]
     else:
         arr = array[:idx][::-1]
-    if np.all(arr is False):
+    if np.all(arr != True):
         return len(arr)
-    return np.where(arr is True)[0][0]
+    return np.where(arr == True)[0][0]
 
 
 def add_out_dict_fields(field, out_dict):
