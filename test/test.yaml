@@ -1,0 +1,120 @@
+%YAML 1.1
+# see https://yaml.org/refcard.html for details on syntax 
+---
+# https://www.mwatelescope.org/images/documents/MWA_2020-B_call_for_proposals.pdf
+name: ips_2024a # will be used as a prefix for all filenames
+obsName: morgan2024A_ips_ # will prefix the obsname (followed by field name)
+project: G0060
+# dates of observations (start-inclusive, stops at 00:00 on stopDate)
+startDate: 2024-06-19
+stopDate: 2024-06-23
+
+# Observatory
+lat: -26.703319 # degrees
+lon: 116.67081 # degrees
+alt: 377 # m
+timezone: 8.0 # hours relative to UTC -- the local date (YYYY-MM-DD) of each local solar noon will be used
+              # as a unique identifier of each day's observing. Actual observations for that day will be
+              # scheduled within 0.5 sidereal days of the local solar noon.
+
+fields: 
+  E: &wide_area
+    system: Heliocentric 
+    coordinates: [30.0, 90.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  SE:
+    system: Heliocentric 
+    coordinates: [30.0, 120.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  SSE:
+    system: Heliocentric 
+    coordinates: [30.0, 150.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  W:
+    system: Heliocentric 
+    coordinates: [30.0, -90.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  SW:
+    system: Heliocentric 
+    coordinates: [30.0, -120.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  SSW:
+    system: Heliocentric 
+    coordinates: [30.0, -150.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  S:
+    system: Heliocentric 
+    coordinates: [30.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+  S_Long:
+    system: Heliocentric 
+    coordinates: [50.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+    skip: 3
+    offset: 0
+  S_Long2:
+    system: Heliocentric 
+    coordinates: [50.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+    skip: 3
+    offset: 1
+  S_Long_Long:
+    system: Heliocentric 
+    coordinates: [70.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
+    project_id: G0060
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+    skip: 3
+    offset: 2
+
+priority: # highest priority first
+  - E
+  - W
+  - S
+  - S_Long
+  - S_Long2
+  - S_Long_Long
+  - SE
+  - SW
+  - SSE
+  - SSW
+
+solarAttenuationCutoff: -3.0 # log10 of solar attenuation required relative to beam centre
+solarOffset: 24576 #s 3072*8; just over 6.8 hours either side of local solar noon will be considered for scheduling
+
+files:
+        pointings: ../data/azel.json
+        beams: beams2.hdf5
+        noons: solar_noons.csv
+        flags: flags.json 
+        targets: targets.csv
+        observations: observations.csv
+        schedule: schedule.sh
+        schedule_csv: schedule.csv
+obs:
+    coarse_channels: "57:68;121:132"
+    pre_time: 16 #s
+    duration: 600 #s
+    shifttime: 200 #s
+    inttime: 0.5 #s
+    freqres: 40 #kHz
+    creator: 'jmorgan'
+    project: G0060
