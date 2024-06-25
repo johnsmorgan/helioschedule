@@ -4,6 +4,7 @@ Optimized scheduling of observations
 
 import argparse
 import csv
+import json
 import numpy as np
 from h5py import File
 from scipy.interpolate import interp1d
@@ -62,13 +63,9 @@ def main():
 
     targets = list(csv.DictReader(line for line in open(conf["files"]["targets"])))
     df = File(conf["files"]["beams"], "r")
-    #FIXME dummy flags
-    flags = [[0, 0] for t in range(len(targets))]
-    # FIXME replacement has to deal with no flags on a particular day
+    flags = json.load(open(conf["files"]["flags"]))
 
-    # deal with flags
     flag_img = np.zeros((len(targets), conf['solarOffset']*2//8), dtype=np.uint8)
-    flag_img2 = flag_img.astype(int).copy()
 
     beams = Beams(conf["files"]["beams"])
     obs_ha = []
@@ -89,6 +86,7 @@ def main():
         
         obs_list = get_flags(flags, mintime, maxtime)
         flag_mask = flags_to_mask(obs_list, len(all_obstimes), mintime)
+        flag_img[t] = flag_mask
         #print(f"mask before convolution {np.sum(flag_mask)}")
         flag_mask_convolved = np.convolve(flag_mask, np.ones(75, dtype=bool), 'same')
         target_mask = np.zeros_like(flag_mask)
@@ -129,7 +127,7 @@ def main():
             ha_grid, beam_grid = np.meshgrid(np.arange(target_beam.shape[1]), np.arange(target_beam.shape[0]))
 
             try:
-                flat_idx = np.nanargmax(target_beam[sun_filter & target_filter])
+                flat_idx = np.nanargmax(target_beam[sun_filter & flag_filter & target_filter])
             except ValueError:
                 print("Warning, no observation meets criteria for %s target %s" % (target["local_noon_str"], c))
                 out_dict["ha_idx_%s" % c] = np.nan
@@ -143,16 +141,9 @@ def main():
             ha_idx = ha_grid[sun_filter & flag_filter & target_filter][flat_idx]
             beam_idx = beam_grid[sun_filter & flag_filter & target_filter][flat_idx]
             obstime = all_obstimes[ha_idx]
-            #print(f"sum target filter: {np.sum(target_filter)}")
+            # FIXME: deal with these hard-coded indices
             target_filter[0, ha_idx-75:ha_idx+75] = False
             flag_img[t, ha_idx-37:ha_idx+38] = 2
-            flag_img2[t, ha_idx-37:ha_idx+38] = 2*k
-            #print(f"sum target filter: {np.sum(target_filter)}")
-            #print()
-            for i, o in enumerate(obs_list):
-                if o[0]>obstime:
-                    obs_list.insert(i, [int(obstime)-296, int(obstime)+304, c])
-                    break
             
             out_dict["beam_%s" % c] = beams.df["beams"].dims[1][0][beam_idx]
             out_dict["ha_idx_%s" % c] = ha_idx
