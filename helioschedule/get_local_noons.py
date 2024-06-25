@@ -55,7 +55,13 @@ def main():
                 local_noon_lst = Longitude(
                     time.gmst * u.hourangle + conf["lon"] * u.deg, wrap_angle=180 * u.deg
                 ).deg
-                print(time.utc_iso()[:-1], "%.3f" % local_noon_lst, time.to_astropy().gps, sep=",", file=f)
+                print(
+                    time.utc_iso()[:-1],
+                    "%.3f" % local_noon_lst,
+                    time.to_astropy().gps,
+                    sep=",",
+                    file=f,
+                )
 
 
 if __name__ == "__main__":

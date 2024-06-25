@@ -10,6 +10,7 @@ from helioschedule.schedule import get_min_max
 LEEWAY = 3600  # s otherwise mwa metadata searches will miss observations that start or stop *during* search period
 SLEEP = 1  # only send max 1 request per second to avoid overloading server
 
+
 def get_flags(noons, offset, warn_obscodes=["G0060"], skip_obscodes=[]):
     flags = []
 
@@ -35,8 +36,20 @@ def get_flags(noons, offset, warn_obscodes=["G0060"], skip_obscodes=[]):
         print(f"{len(start_times_unfiltered)} unfiltered observations")
         print(set([o[4] for o in result_dict]))
 
-        obs = [(o[0], o[1]) for o in result_dict if o[1] > mintime if o[0] < maxtime if not o[4] in skip_obscodes]
-        obscodes = [o[4] for o in result_dict if o[1] > mintime if o[0] < maxtime if not o[4] in skip_obscodes]
+        obs = [
+            (o[0], o[1])
+            for o in result_dict
+            if o[1] > mintime
+            if o[0] < maxtime
+            if not o[4] in skip_obscodes
+        ]
+        obscodes = [
+            o[4]
+            for o in result_dict
+            if o[1] > mintime
+            if o[0] < maxtime
+            if not o[4] in skip_obscodes
+        ]
         for warn_obscode in warn_obscodes:
             if warn_obscode in obscodes:
                 print(f"Warning! {warn_obscode} observations already scheduled!")
@@ -47,24 +60,30 @@ def get_flags(noons, offset, warn_obscodes=["G0060"], skip_obscodes=[]):
         sleep(SLEEP)
     return flags
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Input yaml file")
-    parser.add_argument("--exclude_obscodes", help="Don't generate flags for these obscodes (comma-separated list)", default="")
+    parser.add_argument(
+        "--exclude_obscodes",
+        help="Don't generate flags for these obscodes (comma-separated list)",
+        default="",
+    )
     args = parser.parse_args()
     conf = safe_load(open(args.infile))
 
-    #allow flagging to be disabled
+    # allow flagging to be disabled
     if conf["files"]["flags"] == "":
         f = open(conf["files"]["flags"], "w")
         f.close()
         return
-        
+
     noons = list(csv.DictReader(line for line in open(conf["files"]["noons"])))
-    flags = get_flags(noons, conf["solarOffset"], skip_obscodes=args.exclude_obscodes.split(','))
-    if not flags==[]:
+    flags = get_flags(noons, conf["solarOffset"], skip_obscodes=args.exclude_obscodes.split(","))
+    if not flags == []:
         with open(conf["files"]["flags"], "w") as f:
             json.dump(flags, f)
+
 
 if __name__ == "__main__":
     main()

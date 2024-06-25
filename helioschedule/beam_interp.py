@@ -1,9 +1,11 @@
 import numpy as np
 from h5py import File
 from scipy.interpolate import interp1d
-SIDEREAL_FACTOR = 1.0027379093604878 # 86400/((1.0*units.sday).to(units.s).value)
+
+SIDEREAL_FACTOR = 1.0027379093604878  # 86400/((1.0*units.sday).to(units.s).value)
 
 arg_closest = lambda x, y: np.argmin(np.abs((x - y)))
+
 
 def neighbours(arr, val):
     """
@@ -29,6 +31,7 @@ def lin_interp(y1, y2, dx):
     dx controls the relative weighting of y1 and y2 in the interpolation
     """
     return y1 * (1 - dx) + y2 * dx
+
 
 class Beams:
     def __init__(self, filename):
