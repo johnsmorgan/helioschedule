@@ -1,7 +1,7 @@
 %YAML 1.1
 # see https://yaml.org/refcard.html for details on syntax 
 ---
-# https://www.mwatelescope.org/images/documents/MWA_2020-B_call_for_proposals.pdf
+# https://mwatelescope.atlassian.net/wiki/spaces/MP/pages/191496193/2024-A+Extended
 name: ips_2024a # will be used as a prefix for all filenames
 obsName: morgan2024A_ips_ # will prefix the obsname (followed by field name)
 project: G0060
@@ -13,9 +13,10 @@ stopDate: 2024-09-30
 lat: -26.703319 # degrees
 lon: 116.67081 # degrees
 alt: 377 # m
-timezone: 8.0 # hours relative to UTC -- the local date (YYYY-MM-DD) of each local solar noon will be used
+timezone: 8.0 # hours relative to UTC -- local solar noon closest to local civil noon will be found for 
+              # each day. The local date (YYYY-MM-DD) of each local solar noon in UTC will be used
               # as a unique identifier of each day's observing. Actual observations for that day will be
-              # scheduled within 0.5 sidereal days of the local solar noon.
+              # scheduled within solarOffset seconds of the local solar noon.
 
 fields: 
   E: &wide_area
