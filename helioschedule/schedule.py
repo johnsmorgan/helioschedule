@@ -55,73 +55,71 @@ def num_unflagged(array, idx, forward=True):
         return len(arr)
     return np.where(arr != False)[0][0]
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("infile", help="Input yaml file")
-    args = parser.parse_args()
-    conf = safe_load(open(args.infile))
+def add_out_dict_fields(field, out_dict):
+    out_dict["ha_idx_%s" % field] = np.nan
+    out_dict["beam_%s" % field] = -1
+    out_dict["sun_attenuation_%s" % field] = np.nan
+    out_dict["starttime_%s" % field] = np.nan
+    out_dict["target_sensitivity_%s" % field] = np.nan
+    out_dict["unflagged_before_%s" % field] = np.nan
+    out_dict["unflagged_after_%s" % field] = np.nan
+    return out_dict
 
-    targets = list(csv.DictReader(line for line in open(conf["files"]["targets"])))
-    df = File(conf["files"]["beams"], "r")
-    flags = json.load(open(conf["files"]["flags"]))
+class SemesterScheduler:
+    def __init__(self, conf_filename):
+        self.conf_filename = conf_filename
+        self.conf = safe_load(open(conf_filename))
+        self.days = list(csv.DictReader(line for line in open(self.conf["files"]["targets"])))
+        self.flags = json.load(open(self.conf["files"]["flags"]))
+        self.flag_img = np.zeros((len(self.days), self.conf['solarOffset']*2//8), dtype=np.uint8)
+        self.beams = Beams(self.conf["files"]["beams"])
+        self.observations = []
 
-    flag_img = np.zeros((len(targets), conf['solarOffset']*2//8), dtype=np.uint8)
+    def schedule(self):
+        for d, day in enumerate(self.days):
+            solar_noon_gps = int(round(float(day["local_noon_gps"])))
+            out_dict = {}
+            for key in ("local_noon_str", "local_noon_lst"):
+                out_dict[key] = day[key]
+            print("scheduling around local noon", day['local_noon_str'])
+            self.schedule_day(solar_noon_gps, day, out_dict)
 
-    beams = Beams(conf["files"]["beams"])
-    obs_ha = []
-    k=0
-
-    # loop over each observing day
-    for t, target in enumerate(targets):
-        print("scheduling around local noon", target['local_noon_str'])
+    def schedule_day(self, solar_noon_gps, day, out_dict=None):
         beam_chan = None
-        out_dict = {}
-        for key in ("local_noon_str", "local_noon_lst"):
-            out_dict[key] = target[key]
-
+        if out_dict is None:
+            out_dict = {}
         # Calculate and stop time based on solar noon 
-        solar_noon_gps = int(round(float(target["local_noon_gps"])))
-        mintime, maxtime = get_min_max(solar_noon_gps, conf['solarOffset'])
-        all_obstimes = get_all_steps(solar_noon_gps, mintime, maxtime, conf['solarOffset'])
+        mintime, maxtime = get_min_max(solar_noon_gps, self.conf['solarOffset'])
+        all_obstimes = get_all_steps(solar_noon_gps, mintime, maxtime, self.conf['solarOffset'])
         
-        obs_list = get_flags(flags, mintime, maxtime)
+        obs_list = get_flags(self.flags, mintime, maxtime)
         flag_mask = flags_to_mask(obs_list, len(all_obstimes), mintime)
-        flag_img[t] = flag_mask
-        #print(f"mask before convolution {np.sum(flag_mask)}")
         flag_mask_convolved = np.convolve(flag_mask, np.ones(75, dtype=bool), 'same')
         target_mask = np.zeros_like(flag_mask)
         target_filter = ~target_mask.reshape(1, -1)
         flag_filter = ~flag_mask_convolved.reshape(1, -1)
-
-        # loop over fields for that day
-        for c in conf["priority"]:
-            if target["ha_%s" % c] == "":
-                out_dict["ha_idx_%s" % c] = np.nan
-                out_dict["beam_%s" % c] = -1
-                out_dict["sun_attenuation_%s" % c] = np.nan
-                out_dict["starttime_%s" % c] = np.nan
-                out_dict["target_sensitivity_%s" % c] = np.nan
-                out_dict["unflagged_before_%s" % c] = np.nan
-                out_dict["unflagged_after_%s" % c] = np.nan
+        for c in self.conf["priority"]:
+            out_dict = add_out_dict_fields(c, out_dict)
+            if day["ha_%s" % c] == "":
                 continue
-            if beam_chan is not None and conf["fields"][c]["beam_chan"] == beam_chan:
+            if beam_chan is not None and self.conf["fields"][c]["beam_chan"] == beam_chan:
                 # Only reconstruct sun_beam if we have switched frequency
                 pass
             else:
-                beam_chan = beam_chan
-                sun_beam = beams.interpolate_beam_2d(beams.beam_str_to_idx(conf["fields"][c]["beam_chan"]),
+                beam_chan = self.conf["fields"][c]["beam_chan"]
+                sun_beam = self.beams.interpolate_beam_2d(self.beams.beam_str_to_idx(beam_chan),
                                             solar_noon_gps,
                                             all_obstimes,
                                             None,
-                                            float(target["dec_sun"]))
+                                            float(day["dec_sun"]))
             # Next, the target field grid
-            target_beam = beams.interpolate_beam_2d(beams.beam_str_to_idx(conf["fields"][c]["beam_chan"]),
+            target_beam = self.beams.interpolate_beam_2d(self.beams.beam_str_to_idx(beam_chan),
                                             solar_noon_gps,
                                             all_obstimes,
-                                            float(target["ha_%s" % c]),
-                                            float(target["dec_%s" % (c)]))
+                                            float(day["ha_%s" % c]),
+                                            float(day["dec_%s" % (c)]))
 
-            sun_filter = sun_beam < 10 ** conf["solarAttenuationCutoff"]
+            sun_filter = sun_beam < 10 ** self.conf["solarAttenuationCutoff"]
             # applying sun_filter to target_beam will return a ravelled array.
             # we need to be able to identify the original location of our peak sensitivity within target_beam
             ha_grid, beam_grid = np.meshgrid(np.arange(target_beam.shape[1]), np.arange(target_beam.shape[0]))
@@ -129,44 +127,49 @@ def main():
             try:
                 flat_idx = np.nanargmax(target_beam[sun_filter & flag_filter & target_filter])
             except ValueError:
-                print("Warning, no observation meets criteria for %s target %s" % (target["local_noon_str"], c))
-                out_dict["ha_idx_%s" % c] = np.nan
-                out_dict["beam_%s" % c] = -1
-                out_dict["sun_attenuation_%s" % c] = np.nan
-                out_dict["starttime_%s" % c] = np.nan
-                out_dict["target_sensitivity_%s" % c] = np.nan
-                out_dict["unflagged_before_%s" % c] = np.nan
-                out_dict["unflagged_after_%s" % c] = np.nan
-                break
+                print("Warning, no observation meets criteria for %s day %s" % (day["local_noon_str"], c))
+                continue 
             ha_idx = ha_grid[sun_filter & flag_filter & target_filter][flat_idx]
             beam_idx = beam_grid[sun_filter & flag_filter & target_filter][flat_idx]
             obstime = all_obstimes[ha_idx]
-            # FIXME: deal with these hard-coded indices
+            # FIXME: hard-coded indices
             target_filter[0, ha_idx-75:ha_idx+75] = False
-            flag_img[t, ha_idx-37:ha_idx+38] = 2
+            flag_mask[ha_idx-37:ha_idx+38] = 2
             
-            out_dict["beam_%s" % c] = beams.df["beams"].dims[1][0][beam_idx]
+            out_dict["beam_%s" % c] = self.beams.df["beams"].dims[1][0][beam_idx]
             out_dict["ha_idx_%s" % c] = ha_idx
+            # FIXME: hard-coded index
             out_dict["starttime_%s" % c] = obstime-296
             out_dict["sun_attenuation_%s" % c] = np.log10(sun_beam[beam_idx, ha_idx])
             out_dict["target_sensitivity_%s" % c] = target_beam[beam_idx, ha_idx]
-        for j, c in enumerate(conf["priority"]):
+
+        for c in self.conf["priority"]:
             ha_idx = out_dict['ha_idx_%s' % c]
             if not np.isnan(ha_idx):
-                out_dict["unflagged_before_%s" % c] = num_unflagged(flag_img[t].astype(bool), ha_idx-38, False)
-                out_dict["unflagged_after_%s" % c] = num_unflagged(flag_img[t].astype(bool), ha_idx+38, True)
-        obs_ha.append(out_dict)
-        k+=1
+                # FIXME: hard-coded indices
+                out_dict["unflagged_before_%s" % c] = num_unflagged(flag_mask, ha_idx-38, False)
+                out_dict["unflagged_after_%s" % c] = num_unflagged(flag_mask.astype(bool), ha_idx+38, True)
+        self.observations.append(out_dict)
 
-    with open(conf["files"]["observations"], "w") as csvfile:
-        fieldnames = sorted(obs_ha[0].keys(), key=lambda k: k[::-1])
-        fieldnames.insert(0, fieldnames.pop(-1))
-        fieldnames.insert(0, fieldnames.pop(-1))
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
+    def write_observations(self):
+        with open(self.conf["files"]["observations"], "w") as csvfile:
+            fieldnames = sorted(self.observations[0].keys(), key=lambda k: k[::-1])
+            fieldnames.insert(0, fieldnames.pop(-1))
+            fieldnames.insert(0, fieldnames.pop(-1))
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
 
-        writer.writeheader()
-        for out_dict in obs_ha:
-            writer.writerow(out_dict)
+            writer.writeheader()
+            for out_dict in self.observations:
+                writer.writerow(out_dict)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("infile", help="Input yaml file")
+    args = parser.parse_args()
+    scheduler = SemesterScheduler(args.infile)
+    scheduler.schedule()
+    scheduler.write_observations()
+
 
 if __name__ == "__main__":
     main()
