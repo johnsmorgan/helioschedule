@@ -69,7 +69,8 @@ def add_out_dict_fields(field, out_dict):
     return out_dict
 
 class Scheduler:
-    def schedule_day(self, solar_noon_gps, day, out_dict=None):
+    def schedule_day(self, solar_noon_gps, local_noon_str,
+                     has, decs, dec_sun, out_dict=None):
         beam_chan = None
         if out_dict is None:
             out_dict = {}
@@ -85,7 +86,7 @@ class Scheduler:
         flag_filter = ~flag_mask_convolved.reshape(1, -1)
         for c in self.conf["priority"]:
             out_dict = add_out_dict_fields(c, out_dict)
-            if day["ha_%s" % c] == "":
+            if has[c] is None:
                 continue
             if beam_chan is not None and self.conf["fields"][c]["beam_chan"] == beam_chan:
                 # Only reconstruct sun_beam if we have switched frequency
@@ -97,15 +98,15 @@ class Scheduler:
                     solar_noon_gps,
                     all_obstimes,
                     None,
-                    float(day["dec_sun"]),
+                    dec_sun,
                 )
             # Next, the target field grid
             target_beam = self.beams.interpolate_beam_2d(
                 self.beams.beam_str_to_idx(beam_chan),
                 solar_noon_gps,
                 all_obstimes,
-                float(day["ha_%s" % c]),
-                float(day["dec_%s" % (c)]),
+                has[c],
+                decs[c],
             )
 
             sun_filter = sun_beam < 10 ** self.conf["solarAttenuationCutoff"]
@@ -120,7 +121,7 @@ class Scheduler:
             except ValueError:
                 print(
                     "Warning, no observation meets criteria for %s day %s"
-                    % (day["local_noon_str"], c)
+                    % (local_noon_str, c)
                 )
                 continue
             ha_idx = ha_grid[sun_filter & flag_filter & target_filter][flat_idx]
@@ -168,7 +169,12 @@ class SemesterScheduler(Scheduler):
             for key in ("local_noon_str", "local_noon_lst"):
                 out_dict[key] = day[key]
             print("scheduling around local noon", day["local_noon_str"])
-            self.schedule_day(solar_noon_gps, day, out_dict)
+            self.schedule_day(solar_noon_gps, 
+                              day["local_noon_str"],
+                              has = {c:float(day["ha_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
+                              decs =  {c:float(day["dec_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
+                              dec_sun = float(day['dec_sun']),
+                              out_dict=out_dict)
 
     def write_observations(self):
         with open(self.conf["files"]["observations"], "w") as csvfile:
