@@ -70,13 +70,15 @@ def add_out_dict_fields(field, out_dict):
 
 class Scheduler:
     def schedule_day(self, solar_noon_gps, local_noon_str,
-                     has, decs, dec_sun, out_dict=None):
+                     has, decs, dec_sun, ref_time_gps=None, out_dict=None):
         beam_chan = None
         if out_dict is None:
             out_dict = {}
+        if ref_time_gps is None:
+            ref_time_gps = solar_noon_gps
         # Calculate and stop time based on solar noon
-        mintime, maxtime = get_min_max(solar_noon_gps, self.conf["solarOffset"])
-        all_obstimes = get_all_steps(solar_noon_gps, mintime, maxtime, self.conf["solarOffset"])
+        mintime, maxtime = get_min_max(ref_time_gps, self.conf["solarOffset"])
+        all_obstimes = get_all_steps(ref_time_gps, mintime, maxtime, self.conf["solarOffset"])
 
         obs_list = get_flags(self.flags, mintime, maxtime)
         flag_mask = flags_to_mask(obs_list, len(all_obstimes), mintime)
@@ -146,10 +148,14 @@ class Scheduler:
                 out_dict["unflagged_after_%s" % c] = num_unflagged(
                     flag_mask.astype(bool), ha_idx + 38, True
                 )
-        self.observations.append(out_dict)
+        return out_dict 
 
-#class DayScheduler(Scheduler):
-#    def __init__()
+class DayScheduler(Scheduler):
+    def __init__(self, conf, flags=[]):
+        self.conf = conf
+        self.flags = flags
+        self.beams = Beams(self.conf["files"]["beams"])
+
 class SemesterScheduler(Scheduler):
     def __init__(self, conf_filename):
         self.conf_filename = conf_filename
@@ -169,12 +175,13 @@ class SemesterScheduler(Scheduler):
             for key in ("local_noon_str", "local_noon_lst"):
                 out_dict[key] = day[key]
             print("scheduling around local noon", day["local_noon_str"])
-            self.schedule_day(solar_noon_gps, 
+            out_dict = self.schedule_day(solar_noon_gps, 
                               day["local_noon_str"],
                               has = {c:float(day["ha_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
                               decs =  {c:float(day["dec_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
                               dec_sun = float(day['dec_sun']),
                               out_dict=out_dict)
+            self.observations.append(out_dict)
 
     def write_observations(self):
         with open(self.conf["files"]["observations"], "w") as csvfile:
