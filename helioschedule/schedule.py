@@ -68,28 +68,7 @@ def add_out_dict_fields(field, out_dict):
     out_dict["unflagged_after_%s" % field] = np.nan
     return out_dict
 
-
-class SemesterScheduler:
-    def __init__(self, conf_filename):
-        self.conf_filename = conf_filename
-        self.conf = safe_load(open(conf_filename))
-        self.days = list(csv.DictReader(line for line in open(self.conf["files"]["targets"])))
-        self.flags = json.load(open(self.conf["files"]["flags"]))
-        self.flag_img = np.zeros(
-            (len(self.days), self.conf["solarOffset"] * 2 // 8), dtype=np.uint8
-        )
-        self.beams = Beams(self.conf["files"]["beams"])
-        self.observations = []
-
-    def schedule(self):
-        for d, day in enumerate(self.days):
-            solar_noon_gps = int(round(float(day["local_noon_gps"])))
-            out_dict = {}
-            for key in ("local_noon_str", "local_noon_lst"):
-                out_dict[key] = day[key]
-            print("scheduling around local noon", day["local_noon_str"])
-            self.schedule_day(solar_noon_gps, day, out_dict)
-
+class Scheduler:
     def schedule_day(self, solar_noon_gps, day, out_dict=None):
         beam_chan = None
         if out_dict is None:
@@ -168,6 +147,29 @@ class SemesterScheduler:
                 )
         self.observations.append(out_dict)
 
+#class DayScheduler(Scheduler):
+#    def __init__()
+class SemesterScheduler(Scheduler):
+    def __init__(self, conf_filename):
+        self.conf_filename = conf_filename
+        self.conf = safe_load(open(conf_filename))
+        self.days = list(csv.DictReader(line for line in open(self.conf["files"]["targets"])))
+        self.flags = json.load(open(self.conf["files"]["flags"]))
+        self.flag_img = np.zeros(
+            (len(self.days), self.conf["solarOffset"] * 2 // 8), dtype=np.uint8
+        )
+        self.beams = Beams(self.conf["files"]["beams"])
+        self.observations = []
+
+    def schedule(self):
+        for d, day in enumerate(self.days):
+            solar_noon_gps = int(round(float(day["local_noon_gps"])))
+            out_dict = {}
+            for key in ("local_noon_str", "local_noon_lst"):
+                out_dict[key] = day[key]
+            print("scheduling around local noon", day["local_noon_str"])
+            self.schedule_day(solar_noon_gps, day, out_dict)
+
     def write_observations(self):
         with open(self.conf["files"]["observations"], "w") as csvfile:
             fieldnames = sorted(self.observations[0].keys(), key=lambda k: k[::-1])
@@ -178,7 +180,6 @@ class SemesterScheduler:
             writer.writeheader()
             for out_dict in self.observations:
                 writer.writerow(out_dict)
-
 
 def main():
     parser = argparse.ArgumentParser()
