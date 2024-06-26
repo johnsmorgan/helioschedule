@@ -8,6 +8,7 @@ dependencies:
   - h5py
   - astropy
   - skyfield
+  - sunpy
   - requests
   - black
   - flake8

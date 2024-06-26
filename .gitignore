@@ -1,6 +1,8 @@
 examples/*/*.sh
 examples/*/*.csv
 examples/*/*.json
+examples/*/beams*.hdf5
+notebooks/beams*.hdf5
 
 # skyfield timescale
 *.bsp
