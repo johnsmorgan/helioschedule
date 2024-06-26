@@ -36,6 +36,8 @@ It is suggested to use a simple Makefile to orchestrate this process. See the ex
 │
 ├── examples           <- Set of example scheduling scenarios
 │
+├── tests              <- Simple test
+│
 ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
 │                         the creator's initials, and a short `-` delimited description, e.g.
 │                         `1.0-jqp-initial-data-exploration`.
@@ -54,6 +56,7 @@ It is suggested to use a simple Makefile to orchestrate this process. See the ex
     │
     ├── get_local_noons.py             <- Pre-calculate local noons over the whole observing timerange
     ├── convert_coordinates.py         <- Convert target coordinates to RA and Decl.
+    ├── get_flags.py                   <- Poll MWA services to discover existing observations to flag
     ├── schedule.py                    <- Carry out scheduling
     ├── generate_observation_script.py <- Convert to a script containing commands to schedule on MWA
 ```
