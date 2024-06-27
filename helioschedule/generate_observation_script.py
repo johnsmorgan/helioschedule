@@ -73,7 +73,6 @@ def main():
                 (times[j] + conf["obs"]["duration"] * u.second).utc.isot[:19].replace("T", ",")
             )
             out_dict["az"], out_dict["el"] = azel[out_dict["sweetspot"]]
-            out_dict["obs_name_prefix"] = conf["obsName"]
             out_dict["field"] = t
             out_dict["sun_attenuation"] = obs_ha["sun_attenuation_%s" % t][S].data[j]
             out_dict["target_sensitivity"] = obs_ha["target_sensitivity_%s" % t][S].data[j]

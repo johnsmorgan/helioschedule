@@ -1,13 +1,5 @@
 %YAML 1.1
-# see https://yaml.org/refcard.html for details on syntax 
 ---
-# https://mwatelescope.atlassian.net/wiki/spaces/MP/pages/191496193/2024-A+Extended
-name: cme_2024B_01 # will be used as a prefix for all filenames
-obsName: morgan2024A_ips_ # will prefix the obsname (followed by field name)
-project: G0060
-# dates of observations (start-inclusive, stops at 00:00 on stopDate)
-refDate: 2024-06-17T05:30:00 # Approximate UTC time when CME front crosses the meridian
-
 # Observatory
 lat: -26.703319 # degrees
 lon: 116.67081 # degrees
@@ -17,32 +9,6 @@ timezone: 8.0 # hours relative to UTC -- local solar noon closest to local civil
               # as a unique identifier of each day's observing. Actual observations for that day will be
               # scheduled within solarOffset seconds of the local solar noon.
 
-fields: 
-  CME_1A_121:
-    system: Heliocentric 
-    coordinates: [25.0, 100.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
-    beam_chan: 121-132
-    obs_chan: "57:68;121:132"
-
-  CME_1B_121:
-    system: Heliocentric 
-    coordinates: [25.0, 120.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
-    beam_chan: 121-132
-    obs_chan: "57:68;121:132"
-
-  CME_1C_121:
-    system: Heliocentric 
-    coordinates: [25.0, 140.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
-    beam_chan: 121-132
-    obs_chan: "57:68;121:132"
-
-priority: # centre of CME front first
-  - CME_1B_121
-  - CME_1A_121
-  - CME_1C_121
 
 solarAttenuationCutoff: -3.0 # log10 of solar attenuation required relative to beam centre
 solarOffset: 3072 #s just over 1.0 hours either side of reference time
@@ -62,3 +28,33 @@ obs:
     freqres: 40 #kHz
     creator: 'jmorgan'
     project: G0060
+    obs_name_prefix: kansabanik2024A_cme_ # will prefix the obsname (followed by field name)
+
+###################################################################################################
+# The following will change depending on the CME
+###################################################################################################
+refDate: 2024-06-17T05:30:00 # Approximate UTC time when CME front crosses the meridian
+
+fields: 
+  CME_1A_121:
+    system: Heliocentric 
+    coordinates: [25.0, 100.0] # solar elongation and angle (solar North through East) (deg, deg)
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+
+  CME_1B_121:
+    system: Heliocentric 
+    coordinates: [25.0, 120.0] # solar elongation and angle (solar North through East) (deg, deg)
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+
+  CME_1C_121:
+    system: Heliocentric 
+    coordinates: [25.0, 140.0] # solar elongation and angle (solar North through East) (deg, deg)
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+
+priority: # centre of CME front first
+  - CME_1B_121
+  - CME_1A_121
+  - CME_1C_121

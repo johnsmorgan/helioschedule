@@ -2,9 +2,6 @@
 # see https://yaml.org/refcard.html for details on syntax 
 ---
 # https://mwatelescope.atlassian.net/wiki/spaces/MP/pages/191496193/2024-A+Extended
-name: ips_2024a # will be used as a prefix for all filenames
-obsName: morgan2024A_ips_ # will prefix the obsname (followed by field name)
-project: G0060
 # dates of observations (start-inclusive, stops at 00:00 on stopDate)
 startDate: 2024-06-17
 stopDate: 2024-09-30
@@ -22,49 +19,41 @@ fields:
   E: &wide_area
     system: Heliocentric 
     coordinates: [30.0, 90.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   SE:
     system: Heliocentric 
     coordinates: [30.0, 120.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   SSE:
     system: Heliocentric 
     coordinates: [30.0, 150.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   W:
     system: Heliocentric 
     coordinates: [30.0, -90.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   SW:
     system: Heliocentric 
     coordinates: [30.0, -120.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   SSW:
     system: Heliocentric 
     coordinates: [30.0, -150.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   S:
     system: Heliocentric 
     coordinates: [30.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
   S_Long:
     system: Heliocentric 
     coordinates: [50.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
     skip: 3
@@ -72,7 +61,6 @@ fields:
   S_Long2:
     system: Heliocentric 
     coordinates: [50.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
     skip: 3
@@ -80,7 +68,6 @@ fields:
   S_Long_Long:
     system: Heliocentric 
     coordinates: [70.0, -180.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
-    project_id: G0060
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
     skip: 3
@@ -119,3 +106,4 @@ obs:
     freqres: 40 #kHz
     creator: 'jmorgan'
     project: G0060
+    obs_name_prefix: morgan2024A_ips_ # will prefix the obsname (followed by field name)
