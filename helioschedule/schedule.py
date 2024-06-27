@@ -68,9 +68,11 @@ def add_out_dict_fields(field, out_dict):
     out_dict["unflagged_after_%s" % field] = np.nan
     return out_dict
 
+
 class Scheduler:
-    def schedule_day(self, solar_noon_gps, local_noon_str,
-                     has, decs, dec_sun, ref_time_gps=None, out_dict=None):
+    def schedule_day(
+        self, solar_noon_gps, local_noon_str, has, decs, dec_sun, ref_time_gps=None, out_dict=None
+    ):
         beam_chan = None
         if out_dict is None:
             out_dict = {}
@@ -121,10 +123,7 @@ class Scheduler:
             try:
                 flat_idx = np.nanargmax(target_beam[sun_filter & flag_filter & target_filter])
             except ValueError:
-                print(
-                    "Warning, no observation meets criteria for %s day %s"
-                    % (local_noon_str, c)
-                )
+                print("Warning, no observation meets criteria for %s day %s" % (local_noon_str, c))
                 continue
             ha_idx = ha_grid[sun_filter & flag_filter & target_filter][flat_idx]
             beam_idx = beam_grid[sun_filter & flag_filter & target_filter][flat_idx]
@@ -148,13 +147,15 @@ class Scheduler:
                 out_dict["unflagged_after_%s" % c] = num_unflagged(
                     flag_mask.astype(bool), ha_idx + 38, True
                 )
-        return out_dict 
+        return out_dict
+
 
 class DayScheduler(Scheduler):
     def __init__(self, conf, flags=[]):
         self.conf = conf
         self.flags = flags
         self.beams = Beams(self.conf["files"]["beams"])
+
 
 class SemesterScheduler(Scheduler):
     def __init__(self, conf_filename):
@@ -175,12 +176,20 @@ class SemesterScheduler(Scheduler):
             for key in ("local_noon_str", "local_noon_lst"):
                 out_dict[key] = day[key]
             print("scheduling around local noon", day["local_noon_str"])
-            out_dict = self.schedule_day(solar_noon_gps, 
-                              day["local_noon_str"],
-                              has = {c:float(day["ha_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
-                              decs =  {c:float(day["dec_%s" % c]) if day["ha_%s" % c] !="" else None for c in self.conf['priority']},
-                              dec_sun = float(day['dec_sun']),
-                              out_dict=out_dict)
+            out_dict = self.schedule_day(
+                solar_noon_gps,
+                day["local_noon_str"],
+                has={
+                    c: float(day["ha_%s" % c]) if day["ha_%s" % c] != "" else None
+                    for c in self.conf["priority"]
+                },
+                decs={
+                    c: float(day["dec_%s" % c]) if day["ha_%s" % c] != "" else None
+                    for c in self.conf["priority"]
+                },
+                dec_sun=float(day["dec_sun"]),
+                out_dict=out_dict,
+            )
             self.observations.append(out_dict)
 
     def write_observations(self):
@@ -193,6 +202,7 @@ class SemesterScheduler(Scheduler):
             writer.writeheader()
             for out_dict in self.observations:
                 writer.writerow(out_dict)
+
 
 def main():
     parser = argparse.ArgumentParser()

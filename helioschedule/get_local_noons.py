@@ -10,13 +10,14 @@ from skyfield.api import load, N, E, wgs84
 from astropy import units as u
 from astropy.coordinates import Longitude
 
+
 class SolarTransiter:
     def __init__(self, lat_deg_n, lon_deg_e, elevation_m):
         self.eph = load("de421.bsp")
         self.lat, self.lon, self.el = lat_deg_n, lon_deg_e, elevation_m
 
         self.sun = self.eph["Sun"]
-        self.observer = self.eph['Earth'] + wgs84.latlon(self.lat * N, self.lon * E)
+        self.observer = self.eph["Earth"] + wgs84.latlon(self.lat * N, self.lon * E)
         self.ts = load.timescale()
 
     def get_transit(self, t_start, t_end):
@@ -31,9 +32,9 @@ def main():
     args = parser.parse_args()
     conf = safe_load(open(args.infile))
 
-    transiter = SolarTransiter(lat_deg_n=conf["lat"],
-                               lon_deg_e=conf["lon"],
-                               elevation_m=conf["alt"])
+    transiter = SolarTransiter(
+        lat_deg_n=conf["lat"], lon_deg_e=conf["lon"], elevation_m=conf["alt"]
+    )
 
     t_start = transiter.ts.from_datetime(
         datetime.combine(
