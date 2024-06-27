@@ -103,6 +103,6 @@ obs:
     shifttime: 200 #s
     inttime: 0.5 #s
     freqres: 40 #kHz
-    creator: 'jmorgan'
+    creator: jmorgan
     project: G0060
     obs_name_prefix: morgan2024A_ips_ # will prefix the obsname (followed by field name)
