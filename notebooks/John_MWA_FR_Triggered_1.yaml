@@ -35,25 +35,25 @@ obs:
 refDate: 2024-06-17T05:30:00 # Approximate UTC when CME front crosses the MWA meridian
 
 fields: 
-  # here we specify 3 points along the CME front with 2*pi*25deg*radians(20) of separation between
+  # here we specify 3 points along the CME front with 2*pi*31.3deg*radians(20) of separation between
   # them. For now, just a single frequency is used. If multiple frequencies are to be observed,
   # then additional 'fields' should be added for each frequency, such that the total number of fields
   # is the product of the number of targets and the number of frequencies.
   CME_1A_121:
     system: Heliocentric 
-    coordinates: [25.0, 100.0] # solar elongation and angle (solar North through East) (deg, deg)
+    coordinates: [31.3, 100.0] # solar elongation and angle (solar North through East) (deg, deg)
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
 
   CME_1B_121:
     system: Heliocentric 
-    coordinates: [25.0, 120.0] # solar elongation and angle (solar North through East) (deg, deg)
+    coordinates: [31.3, 120.0] # solar elongation and angle (solar North through East) (deg, deg)
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
 
   CME_1C_121:
     system: Heliocentric 
-    coordinates: [25.0, 140.0] # solar elongation and angle (solar North through East) (deg, deg)
+    coordinates: [31.3, 140.0] # solar elongation and angle (solar North through East) (deg, deg)
     beam_chan: 121-132
     obs_chan: "57:68;121:132"
 
