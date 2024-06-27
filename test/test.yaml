@@ -14,7 +14,7 @@ timezone: 8.0 # hours relative to UTC -- the local date (YYYY-MM-DD) of each loc
               # scheduled within 0.5 sidereal days of the local solar noon.
 
 fields: 
-  E: &wide_area
+  E:
     system: Heliocentric 
     coordinates: [30.0, 90.0] # solar elongation and angle (relative to Ecliptic North) (both in degrees)
     beam_chan: 121-132
@@ -96,7 +96,6 @@ files:
         schedule: schedule.sh
         schedule_csv: schedule.csv
 obs:
-    coarse_channels: "57:68;121:132"
     pre_time: 16 #s
     duration: 600 #s
     shifttime: 200 #s

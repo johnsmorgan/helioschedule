@@ -20,7 +20,6 @@ files:
         schedule: schedule.sh
         schedule_csv: schedule.csv
 obs:
-    coarse_channels: "57:68;121:132"
     pre_time: 16 #s
     duration: 600 #s
     shifttime: 200 #s
