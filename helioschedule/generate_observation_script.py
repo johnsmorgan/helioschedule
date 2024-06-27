@@ -9,9 +9,9 @@ from astropy.time import Time
 
 S = slice(None, None, None)
 
-SUN_OBS_STR = "schedule_observation.py --starttime={pre_time_comma} --stoptime=++16s --freq='{coarse_channels}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
-SUN_OBS_STR_POST = "schedule_observation.py --starttime={post_time_comma} --stoptime=++16s --freq='{coarse_channels}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
-OBSERVATION_STR = "schedule_observation.py --starttime={time_comma} --stoptime=++{duration}s --freq='{coarse_channels}' --obsname={obs_name_prefix}{field} --shifttime={shifttime} --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --azimuth={az} --elevation={el}"
+SUN_OBS_STR = "schedule_observation.py --starttime={pre_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
+SUN_OBS_STR_POST = "schedule_observation.py --starttime={post_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
+OBSERVATION_STR = "schedule_observation.py --starttime={time_comma} --stoptime=++{duration}s --freq='{obs_chan}' --obsname={obs_name_prefix}{field} --shifttime={shifttime} --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --azimuth={az} --elevation={el}"
 
 
 def main():
@@ -62,7 +62,9 @@ def main():
                 continue
             out_dict = []
             out_dict = conf["obs"]
-            out_dict["coarse_channels"] = conf["fields"][t]["obs_chan"]
+            for k in ('beam_chan', 'obs_chan', 'pre_time', 'duration', 'shifttime', 'inttime', 'freqres', 'creator', 'project', 'obs_name_prefix'):
+                if k in conf["fields"][t].keys():
+                    out_dict[k] = conf["fields"][t][k]
             out_dict["sweetspot"] = obs_ha["beam_%s" % t][S].data[j]
             out_dict["time"] = times[j].utc.isot[:19]
             out_dict["obsid"] = int(times[j].gps)

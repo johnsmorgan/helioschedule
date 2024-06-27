@@ -73,7 +73,7 @@ class Scheduler:
     def schedule_day(
         self, solar_noon_gps, local_noon_str, has, decs, dec_sun, ref_time_gps=None, out_dict=None
     ):
-        beam_chan = None
+        beam_chan = None if not "beam_chan" in self.conf["obs"].keys() else self.conf["obs"]["beam_chan"]
         if out_dict is None:
             out_dict = {}
         if ref_time_gps is None:
@@ -92,10 +92,7 @@ class Scheduler:
             out_dict = add_out_dict_fields(c, out_dict)
             if has[c] is None:
                 continue
-            if beam_chan is not None and self.conf["fields"][c]["beam_chan"] == beam_chan:
-                # Only reconstruct sun_beam if we have switched frequency
-                pass
-            else:
+            if (beam_chan is None) or ("beam_chan" in self.conf["fields"][c].keys() and self.conf["fields"][c]["beam_chan"] != beam_chan):
                 beam_chan = self.conf["fields"][c]["beam_chan"]
                 sun_beam = self.beams.interpolate_beam_2d(
                     self.beams.beam_str_to_idx(beam_chan),

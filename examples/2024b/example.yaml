@@ -97,6 +97,9 @@ files:
         observations: observations.csv
         schedule: schedule.sh
         schedule_csv: schedule.csv
+
+# The following, along with beam_chan and obs_chan must be defined here *or* in the individual fields.
+# If defined in both, values below will be overridden by field-specific values 
 obs:
     pre_time: 16 #s
     duration: 600 #s
