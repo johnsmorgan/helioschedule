@@ -28,6 +28,8 @@ def get_flags(noons, offset, warn_obscodes=["G0060"], skip_obscodes=[]):
         try:
             result_dict = json.loads(result.text)
         except json.JSONDecodeError:
+            if "No observations found." in result.text:
+                continue
             print("can't decode the following result--expecting valid json")
             print(result.text)
             raise

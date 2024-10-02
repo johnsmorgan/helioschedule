@@ -1,0 +1,50 @@
+%YAML 1.1
+---
+# Observatory
+lat: -26.703319 # degrees
+lon: 116.67081 # degrees
+alt: 377 # m
+timezone: 8.0 # hours relative to UTC -- local solar noon closest to local civil noon will be found for 
+              # each day. The local date (YYYY-MM-DD) of each local solar noon in UTC will be used
+              # as a unique identifier of each day's observing. Actual observations for that day will be
+              # scheduled within solarOffset seconds of the local solar noon.
+
+
+solarAttenuationCutoff: -2.0 # log10 of solar attenuation required relative to beam centre
+solarOffset: 10800 #s 3 hours each side of reference
+
+files:
+        pointings: ../data/azel.json
+        beams: beams2.hdf5
+        observations: observations.csv
+        schedule: schedule.sh
+        schedule_csv: schedule.csv
+obs:
+    pre_time: 16 #s
+    duration: 600 #s
+    shifttime: 200 #s
+    inttime: 0.5 #s
+    freqres: 40 #kHz
+    creator: jmorgan
+    project: G0060
+    obs_name_prefix: dwell # will prefix the obsname (followed by field name)
+
+###################################################################################################
+# The following will change depending on the CME
+###################################################################################################
+refDate: 2024-10-01T05:30:00 # Approximate UTC when CME front crosses the MWA meridian
+
+fields: 
+  # here we specify 3 points along the CME front with 2*pi*31.3deg*radians(20) of separation between
+  # them. For now, just a single frequency is used. If multiple frequencies are to be observed,
+  # then additional 'fields' should be added for each frequency, such that the total number of fields
+  # is the product of the number of targets and the number of frequencies.
+  East:
+    system: Heliocentric 
+    coordinates: [30.0, 90.0] # solar elongation and angle (solar North through East) (deg, deg)
+    beam_chan: 121-132
+    obs_chan: "57:68;121:132"
+
+priority: # list the fields above which should be observed (presumably all) in order of priority.
+          # here, the centre of CME front is observed first
+  - East

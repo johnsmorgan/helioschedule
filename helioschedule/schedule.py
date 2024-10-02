@@ -47,6 +47,10 @@ def num_unflagged(array, idx, forward=True):
     find the length of run of False after/before idx
     inclusive of idx
     """
+    if idx < 0:
+        return 0
+    if idx >= len(array):
+        return 0
     if array[idx] is True:
         return 0
     if forward is True:
@@ -69,83 +73,110 @@ def add_out_dict_fields(field, out_dict):
     return out_dict
 
 
+
 class Scheduler:
+    def setup_day(self, ref_time_gps):
+        """
+        set up all members required for each day's observation:
+        self.all_obstimes
+        self.flag_mask
+        """
+        # Calculate and stop time based on solar noon
+        mintime, maxtime = get_min_max(ref_time_gps, self.conf["solarOffset"])
+        self.all_obstimes = get_all_steps(ref_time_gps, mintime, maxtime, self.conf["solarOffset"])
+
+        obs_list = get_flags(self.flags, mintime, maxtime)
+        self.flag_mask = flags_to_mask(obs_list, len(self.all_obstimes), mintime)
+
+    def setup_obs(self, solar_noon_gps, ha, dec, dec_sun, beam_chan, regen_sun=True):
+        """
+        set up beams for a new pointing
+        self.sun_beam
+        self.target_beam
+
+        FIXME: might be able to eliminate `c`.
+        Also need to think about whether beam_chan should be an attribute
+        """
+        # generate sun beam, only if we are on a new day or a new observing frequency (chan)
+        if regen_sun is True:
+            self.sun_beam = self.beams.interpolate_beam_2d(
+                self.beams.beam_str_to_idx(beam_chan),
+                solar_noon_gps,
+                self.all_obstimes,
+                None,
+                dec_sun,
+            )
+            self.sun_filter = self.sun_beam < 10 ** self.conf["solarAttenuationCutoff"]
+        # Next, the target field grid
+        self.target_beam = self.beams.interpolate_beam_2d(
+            self.beams.beam_str_to_idx(beam_chan),
+            solar_noon_gps,
+            self.all_obstimes,
+            ha,
+            dec,
+        )
+
     def schedule_day(
         self, solar_noon_gps, local_noon_str, has, decs, dec_sun, ref_time_gps=None, out_dict=None
     ):
-        beam_chan = None if not "beam_chan" in self.conf["obs"].keys() else self.conf["obs"]["beam_chan"]
         if out_dict is None:
             out_dict = {}
         if ref_time_gps is None:
             ref_time_gps = solar_noon_gps
-        # Calculate and stop time based on solar noon
-        mintime, maxtime = get_min_max(ref_time_gps, self.conf["solarOffset"])
-        all_obstimes = get_all_steps(ref_time_gps, mintime, maxtime, self.conf["solarOffset"])
-
-        obs_list = get_flags(self.flags, mintime, maxtime)
-        flag_mask = flags_to_mask(obs_list, len(all_obstimes), mintime)
-        flag_mask_convolved = np.convolve(flag_mask, np.ones(75, dtype=bool), "same")
-        target_mask = np.zeros_like(flag_mask)
+        self.setup_day(solar_noon_gps)
+        flag_mask_convolved = np.convolve(self.flag_mask, np.ones(75, dtype=bool), "same")
+        # FIXME: hard-coded indices
+        self.flag_mask[:37] = True
+        self.flag_mask[-38:]= True
+        target_mask = np.zeros_like(self.flag_mask)
         target_filter = ~target_mask.reshape(1, -1)
         flag_filter = ~flag_mask_convolved.reshape(1, -1)
+        beam_chan = None
         for c in self.conf["priority"]:
             out_dict = add_out_dict_fields(c, out_dict)
             if has[c] is None:
                 continue
-            if (beam_chan is None) or ("beam_chan" in self.conf["fields"][c].keys() and self.conf["fields"][c]["beam_chan"] != beam_chan):
+            if (beam_chan is None) or (self.conf["fields"][c]["beam_chan"] != beam_chan):
                 beam_chan = self.conf["fields"][c]["beam_chan"]
-                sun_beam = self.beams.interpolate_beam_2d(
-                    self.beams.beam_str_to_idx(beam_chan),
-                    solar_noon_gps,
-                    all_obstimes,
-                    None,
-                    dec_sun,
-                )
-            # Next, the target field grid
-            target_beam = self.beams.interpolate_beam_2d(
-                self.beams.beam_str_to_idx(beam_chan),
-                solar_noon_gps,
-                all_obstimes,
-                has[c],
-                decs[c],
-            )
+                regen_sun = True
+            else:
+                regen_sun = False
+            self.setup_obs(solar_noon_gps, ha=has[c], dec=decs[c], dec_sun=dec_sun, beam_chan=beam_chan, regen_sun=regen_sun)
 
-            sun_filter = sun_beam < 10 ** self.conf["solarAttenuationCutoff"]
             # applying sun_filter to target_beam will return a ravelled array.
             # we need to be able to identify the original location of our peak sensitivity within target_beam
             ha_grid, beam_grid = np.meshgrid(
-                np.arange(target_beam.shape[1]), np.arange(target_beam.shape[0])
+                np.arange(self.target_beam.shape[1]), np.arange(self.target_beam.shape[0])
             )
 
             try:
-                flat_idx = np.nanargmax(target_beam[sun_filter & flag_filter & target_filter])
+                flat_idx = np.nanargmax(self.target_beam[self.sun_filter & flag_filter & target_filter])
             except ValueError:
                 print("Warning, no observation meets criteria for %s day %s" % (local_noon_str, c))
                 continue
-            ha_idx = ha_grid[sun_filter & flag_filter & target_filter][flat_idx]
-            beam_idx = beam_grid[sun_filter & flag_filter & target_filter][flat_idx]
-            obstime = all_obstimes[ha_idx]
+            ha_idx = ha_grid[self.sun_filter & flag_filter & target_filter][flat_idx]
+            beam_idx = beam_grid[self.sun_filter & flag_filter & target_filter][flat_idx]
+            obstime = self.all_obstimes[ha_idx]
             # FIXME: hard-coded indices
             target_filter[0, ha_idx - 75 : ha_idx + 75] = False
-            flag_mask[ha_idx - 37 : ha_idx + 38] = 2
+            self.flag_mask[ha_idx - 37 : ha_idx + 38] = 2
 
             out_dict["beam_%s" % c] = self.beams.df["beams"].dims[1][0][beam_idx]
             out_dict["ha_idx_%s" % c] = ha_idx
             # FIXME: hard-coded index
             out_dict["starttime_%s" % c] = obstime - 296
-            out_dict["sun_attenuation_%s" % c] = np.log10(sun_beam[beam_idx, ha_idx])
-            out_dict["target_sensitivity_%s" % c] = target_beam[beam_idx, ha_idx]
+            out_dict["sun_attenuation_%s" % c] = np.log10(self.sun_beam[beam_idx, ha_idx])
+            out_dict["target_sensitivity_%s" % c] = self.target_beam[beam_idx, ha_idx]
 
         for c in self.conf["priority"]:
             ha_idx = out_dict["ha_idx_%s" % c]
             if not np.isnan(ha_idx):
                 # FIXME: hard-coded indices
-                out_dict["unflagged_before_%s" % c] = num_unflagged(flag_mask, ha_idx - 38, False)
+                out_dict["unflagged_before_%s" % c] = num_unflagged(self.flag_mask, ha_idx - 38, False)
                 out_dict["unflagged_after_%s" % c] = num_unflagged(
-                    flag_mask.astype(bool), ha_idx + 38, True
+                    self.flag_mask.astype(bool), ha_idx + 38, True
                 )
         return out_dict
-
 
 class DayScheduler(Scheduler):
     def __init__(self, conf, flags=[]):

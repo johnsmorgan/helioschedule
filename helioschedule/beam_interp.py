@@ -75,5 +75,7 @@ class Beams:
             beam_x = ha0_obstime + SIDEREAL_FACTOR * (
                 86400 * self.df["beams"].dims[3][0][...] / 360 + ha_offset_s
             )
-        beam_interpolator = interp1d(x=beam_x, y=beam_1deg, kind="cubic", axis=1)
+        beam_interpolator = interp1d(x=beam_x, y=beam_1deg, kind="cubic", axis=1, fill_value='extrapolate')
+        if obstimes.max() > beam_x.max():
+            print(f"Warning! extrapolating beam by {obstimes.max()-beam_x.max()}s")
         return beam_interpolator(obstimes)
