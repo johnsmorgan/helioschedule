@@ -19,7 +19,7 @@ def get_flags(noons, offset, warn_obscodes=["G0060"], skip_obscodes=[]):
         mintime, maxtime = get_min_max(solar_noon_gps, offset=offset)
 
         result = requests.get(
-            "http://ws.mwatelescope.org/metadata/find",
+            "https://ws.mwatelescope.org/metadata/find",
             data={"mintime": f"{mintime-LEEWAY}", "maxtime": f"{maxtime+LEEWAY}", "extended": 1},
         )
         if result.text == "":
