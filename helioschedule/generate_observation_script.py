@@ -60,9 +60,8 @@ def main():
         for j in range(len(noons)):
             if np.isnan(obs_ha["ha_idx_%s" % t][S][j]):
                 continue
-            out_dict = []
             out_dict = conf["obs"]
-            for k in ('beam_chan', 'obs_chan', 'pre_time', 'duration', 'shifttime', 'inttime', 'freqres', 'creator', 'project', 'obs_name_prefix'):
+            for k in ('beam_chan', 'obs_chan', 'pre_time', 'duration', 'shifttime', 'inttime', 'freqres', 'creator', 'project', 'obs_name_prefix', 'tileset'):
                 if k in conf["fields"][t].keys():
                     out_dict[k] = conf["fields"][t][k]
             out_dict["sweetspot"] = obs_ha["beam_%s" % t][S].data[j]
