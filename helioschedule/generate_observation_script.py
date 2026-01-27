@@ -9,9 +9,9 @@ from astropy.time import Time
 
 S = slice(None, None, None)
 
-SUN_OBS_STR = "schedule_observation.py --starttime={pre_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
-SUN_OBS_STR_POST = "schedule_observation.py --starttime={post_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project}"
-OBSERVATION_STR = "schedule_observation.py --starttime={time_comma} --stoptime=++{duration}s --freq='{obs_chan}' --obsname={obs_name_prefix}{field} --shifttime={shifttime} --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --azimuth={az} --elevation={el}"
+SUN_OBS_STR = "schedule_observation.py --starttime={pre_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --tileset={tileset}"
+SUN_OBS_STR_POST = "schedule_observation.py --starttime={post_time_comma} --stoptime=++16s --freq='{obs_chan}' --obsname={obs_name_prefix}Sun --source=Sun --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --tileset={tileset}"
+OBSERVATION_STR = "schedule_observation.py --starttime={time_comma} --stoptime=++{duration}s --freq='{obs_chan}' --obsname={obs_name_prefix}{field} --shifttime={shifttime} --mode=MWAX_CORRELATOR --inttime={inttime} --freqres={freqres} --creator={creator} --project={project} --azimuth={az} --elevation={el} --tileset={tileset}"
 
 
 def main():
@@ -104,7 +104,7 @@ def main():
                 schedule_time += 16
             else:
                 print(
-                    "# no space around observation -- skipping Sun observation" % ((t2 - t1).sec),
+                    "# no space around observation -- skipping Sun observation",
                     file=outfile,
                 )
             print(OBSERVATION_STR.format(**o), "#", o["obsid"], file=outfile)
