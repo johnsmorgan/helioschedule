@@ -171,3 +171,6 @@ cython_debug/
 
 test/.gitignore
 all_plots
+
+notebooks/*.csv
+notebooks/*.sh
