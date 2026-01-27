@@ -103,4 +103,5 @@ obs:
     freqres: 40 #kHz
     creator: jmorgan
     project: G0060
+    tileset: p2_extended
     obs_name_prefix: morgan2024A_ips_ # will prefix the obsname (followed by field name)
